@@ -1,3 +1,10 @@
+/* Copyright (c) 2015-2016 Northwestern Polytechnical University 
+ *
+ * Permission to install, use, copy, modify, and distribute this software for any
+ * but evil purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ */
+
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <iostream>
@@ -14,14 +21,14 @@ using namespace RAMCloud;
 using namespace std;
 
 struct fileAttribute{
-	size_t blockCount; //ÎÄ¼ş·Ö¿éÊı
-	size_t blockSize;  //ÎÄ¼ş¿é´óĞ¡
-	size_t fileSize;  //ÎÄ¼ş´óĞ¡£¬ÒÔ×Ö½ÚÎªµ¥Î»
-	struct timeval accessTime; //×îºó·ÃÎÊÊ±¼ä´Á
-	string group; //ÎÄ¼şËùÓĞÕßËùÔÚµÄ×é
-	string owner; //ÎÄ¼şËùÓĞÕß
-	string checkSum; //ÎÄ¼şĞ£ÑéºÍ
-	/*ÆäËû´øÀ©Õ¹ÊôĞÔ*/
+	size_t blockCount; //æ–‡ä»¶åˆ†å—æ•°
+	size_t blockSize;  //æ–‡ä»¶å—å¤§å°
+	size_t fileSize;  //æ–‡ä»¶å¤§å°ï¼Œä»¥å­—èŠ‚ä¸ºå•ä½
+	struct timeval accessTime; //æœ€åè®¿é—®æ—¶é—´æˆ³
+	string group; //æ–‡ä»¶æ‰€æœ‰è€…æ‰€åœ¨çš„ç»„
+	string owner; //æ–‡ä»¶æ‰€æœ‰è€…
+	string checkSum; //æ–‡ä»¶æ ¡éªŒå’Œ
+	/*å…¶ä»–å¸¦æ‰©å±•å±æ€§*/
 };
 
 string keyAttrBlkCnt = "attribute.blockCount";
@@ -33,12 +40,12 @@ string keyAttrGroup = "attribute.group";
 string keyAttrOwner = "attribute.owner";
 string keyAttrCheckSum = "attribute.checkSum";
 
-//»º³åÇø´óĞ¡Ä¬ÈÏÎª1M£¬1024*1024
+//ç¼“å†²åŒºå¤§å°é»˜è®¤ä¸º1Mï¼Œ1024*1024
 const static size_t BUFSIZE = 1048576;
 
-/* ÅĞ¶ÏÄ³¸öÎÄ¼ş£¬¼´ÏàÓ¦µÄ±íÊÇ·ñ´æÔÚ£¬
- * ´æÔÚ·µ»Øtrue
- * ²»´æÔÚ·µ»Øfalse
+/* åˆ¤æ–­æŸä¸ªæ–‡ä»¶ï¼Œå³ç›¸åº”çš„è¡¨æ˜¯å¦å­˜åœ¨ï¼Œ
+ * å­˜åœ¨è¿”å›true
+ * ä¸å­˜åœ¨è¿”å›false
  */
 bool doesExist(const string &locator, const string &clusterName, const string &fileName)
 {
@@ -50,7 +57,7 @@ bool doesExist(const string &locator, const string &clusterName, const string &f
 	}
 	return true;//table exists
 }
-/*É¾³ıÄ³¸öÎÄ¼ş£¬¼´Ïà¶ÔÓ¦µÄ±í*/
+/*åˆ é™¤æŸä¸ªæ–‡ä»¶ï¼Œå³ç›¸å¯¹åº”çš„è¡¨*/
 int deleteFromRC(const string &locator, const string &clusterName, const string &fileName)
 {
 	RamCloud client(locator.c_str(), clusterName.c_str()); //locator main
@@ -63,18 +70,18 @@ int deleteFromRC(const string &locator, const string &clusterName, const string 
 
 int getFromRC(const string &locator, const string &clusterName, const string &fileName)
 {
-	RamCloud client(locator.c_str(), clusterName.c_str()); // locator  main £¬Á¬½Ó
+	RamCloud client(locator.c_str(), clusterName.c_str()); // locator  main ï¼Œè¿æ¥
 
 	bool ret = doesExist(locator, clusterName, fileName);
 	if(ret){
 		cout<<"file does't exist!!!"<<endl;
 		return 0;
 	}
-	//¸ù¾İ±íÃû»ñÈ¡±íµÄID
+	//æ ¹æ®è¡¨åè·å–è¡¨çš„ID
 	size_t tableId = client.getTableId(fileName.c_str()); //TODO if dos't exist
 	cout<<"tableId is "<<tableId<<endl;
 
-	// ¶ÁÈ¡ÎÄ¼şµÄ¿éÊı
+	// è¯»å–æ–‡ä»¶çš„å—æ•°
 	Buffer value;
 	struct fileAttribute attribute;
 
@@ -95,9 +102,9 @@ int getFromRC(const string &locator, const string &clusterName, const string &fi
 	//cout<<attribute.accessTime.tv_usec<<endl;
 
 	//cout<<"value.size()"<<value.size()<<endl;
-	//cout<<"value.getData() return value is "<<value.copy(0, sizeof(buffer), buffer)<<endl; //TODO: »áÒıÆğ¶Î´íÎó
+	//cout<<"value.getData() return value is "<<value.copy(0, sizeof(buffer), buffer)<<endl; //TODO: ä¼šå¼•èµ·æ®µé”™è¯¯
 
-	//Êä³öÎÄ¼şÁ÷
+	//è¾“å‡ºæ–‡ä»¶æµ
 	ofstream out;
 	out.open(fileName.c_str(), ios::out|ios::binary);
 
@@ -109,18 +116,18 @@ int getFromRC(const string &locator, const string &clusterName, const string &fi
 	////size_t offset=0;
 	for(size_t i=1; i<=attribute.blockCount; i++)
 	{
-		//½«size_t×ª»»Îªstring
+		//å°†size_tè½¬æ¢ä¸ºstring
 		stringstream stream;
 		stream<<i;
 		tmp=stream.str();
 		key = key_head + tmp;
 		cout<<"key is "<<key<<endl;
 		client.read(tableId, key.c_str(), key.length(), &value);
-		value.copy(0, value.size(), buf); //½«Êı¾İ¿½±´µ½bufÖĞ
+		value.copy(0, value.size(), buf); //å°†æ•°æ®æ‹·è´åˆ°bufä¸­
 		out.write(buf, value.size());
 		//cout<<"offset is "<<offset<<endl;
 		//cout<<"value.size() is "<<value.size()<<endl;
-		//value.write(offset, value.size(), fp); ²»»á×·¼ÓĞ´£¿?
+		//value.write(offset, value.size(), fp); ä¸ä¼šè¿½åŠ å†™ï¼Ÿ?
 		//offset += value.size();
 		//cout<<"offset is "<<offset<<endl;
 	}
@@ -144,13 +151,13 @@ int putToRc(const string &locator, const string &clusterName, const string &file
 	cout<<"tableId = "<<tableId<<endl;
 
 	char buf[BUFSIZE];
-	//ÊäÈëÎÄ¼şÁ÷£¬
+	//è¾“å…¥æ–‡ä»¶æµï¼Œ
 	ifstream in;
 	in.open(fileName.c_str(), ios::in|ios::binary);
 	if(!in)
 	{
 		cout<<"File dos't exist"<<endl;
-		return -1;//ÎÄ¼ş²»´æÔÚ
+		return -1;//æ–‡ä»¶ä¸å­˜åœ¨
 	}
 
 	struct stat statBuf;
@@ -159,9 +166,9 @@ int putToRc(const string &locator, const string &clusterName, const string &file
 		cout<<"stat file error! errno:"<<errno<<endl;
 	}
 
-	//¶ÁÈ¡ÎÄ¼şÖ±µ½ÎÄ¼ş½áÎ²
+	//è¯»å–æ–‡ä»¶ç›´åˆ°æ–‡ä»¶ç»“å°¾
 	size_t  count=0;
-	string key_head = "part"; // ¼üÖµ
+	string key_head = "part"; // é”®å€¼
 	string key, tmp;
 
 	while(!in.eof())
@@ -180,7 +187,7 @@ int putToRc(const string &locator, const string &clusterName, const string &file
 		//stream.clear();
 		//tmp.empty();
 	}
-	//½«ÎÄ¼şÊôĞÔĞÅÏ¢Ğ´µ½±íµÄ½áÎ²
+	//å°†æ–‡ä»¶å±æ€§ä¿¡æ¯å†™åˆ°è¡¨çš„ç»“å°¾
 	cout<<"count = "<<count<<endl;
 
 	string keyFileAttribute = "fileAttribute";
@@ -204,7 +211,7 @@ int putToRc(const string &locator, const string &clusterName, const string &file
 	//client.write(tableId, keyAttrOwner.c_str(), keyAttrOwner.length(), &attribute.owner, sizeof(attribute.owner));
 	//client.write(tableId, keyAttrCheckSum.c_str(), keyAttrCheckSum.length(), &attribute.checkSum, sizeof(attribute.checkSum));
 
-	//¹Ø±ÕÎÄ¼şÊäÈë£¬Êä³öÁ÷
+	//å…³é—­æ–‡ä»¶è¾“å…¥ï¼Œè¾“å‡ºæµ
 	in.close();
 	return 0;
 };
@@ -224,7 +231,7 @@ int main(int argc, char **argv)
 	string locator = argv[1];
 	string cmd = argv[2];
 	string fileName = argv[3];
-	if( cmd.compare("put")==0 ){ //ÅĞ¶ÏÃüÁîÀàĞÍ£¬µÈÓÚ0±íÊ¾ÏàµÈ
+	if( cmd.compare("put")==0 ){ //åˆ¤æ–­å‘½ä»¤ç±»å‹ï¼Œç­‰äº0è¡¨ç¤ºç›¸ç­‰
 		putToRc(locator, "main", fileName);
 	}
 	else if(cmd.compare("get")==0 ){
